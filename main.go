@@ -41,11 +41,11 @@ func ExgAdjust(time string) (oldCourse, newCourse *model.Course) {
 		EndTime:   res[4],
 	}
 	newCourse = &model.Course{
-		StartWeek: res[0],
-		EndWeek:   res[1],
-		Day:       res[2],
-		StartTime: res[3],
-		EndTime:   res[4],
+		StartWeek: res[5],
+		EndWeek:   res[6],
+		Day:       res[7],
+		StartTime: res[8],
+		EndTime:   res[9],
 	}
 	return oldCourse, newCourse
 }
