@@ -34,7 +34,7 @@ var (
 )
 
 // ExtractHourFromTime 用于解析08:20-10:00这种时间
-func ExtractHourFromTime(timeStr string) (string, string) {
+func extractHourFromTime(timeStr string) (string, string) {
 	// 分割时间段字符串，获取开始时间和结束时间
 	parts := strings.Split(timeStr, "-")
 	if len(parts) != 2 {
@@ -52,15 +52,14 @@ func ExtractHourFromTime(timeStr string) (string, string) {
 }
 
 // CheckExamTime 格式化考试时间 ，返回的参数分别为：在第几周考试，星期几，考试开始小时，考试结束小时
-func CheckExamTime(exam string) *model.Exam {
-	str := `2024年04月18日 08:20-10:00 旗山西3-303`
+func CheckExamTime(str string) *model.Exam {
 
 	dateRe := regexp.MustCompile(`\d{4}年\d{2}月\d{2}日`)
 	timeRe := regexp.MustCompile(`\d{2}:\d{2}-\d{2}:\d{2}`)
 
 	date := dateRe.FindString(str)
 	examTime := timeRe.FindString(str)
-	startHour, endHour := ExtractHourFromTime(examTime)
+	startHour, endHour := extractHourFromTime(examTime)
 	startHours, _ := strconv.Atoi(startHour)
 	endHours, _ := strconv.Atoi(endHour)
 
@@ -194,7 +193,8 @@ func main() {
 
 	}
 	//添加考试时间
-	exams := CheckExamTime("")
+	str := `2024年04月18日 08:20-10:00 旗山西3-303`
+	exams := CheckExamTime(str)
 	//fmt.Println(exams.Week, exams.StartHour, exams.EndHour, exams.Weekday)
 	tables[exams.Week-1].AddBusyTime(exams.StartHour, exams.EndHour, exams.Weekday)
 	//获取结果并格式化
