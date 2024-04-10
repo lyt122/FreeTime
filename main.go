@@ -50,6 +50,7 @@ func ExgAdjust(time string) (oldCourse, newCourse *model.Course) {
 	return oldCourse, newCourse
 }
 
+// 把时间信息转成[]int数组
 func exg(time string) []int {
 	re := regexp.MustCompile(`\d+`)
 	matches := re.FindAllString(time, -1)
@@ -86,11 +87,13 @@ func readData(week int, data []string) {
 		start := hours[0]
 		for k, i := range hours {
 			if k > 0 {
+				//看小时是否连续，如果不连续，说明这段时间是忙碌的，可以把之前空闲的时间提取出来
 				if hours[k]-hours[k-1] != 1 {
 					fmt.Printf("第%d周：星期%d,%d-%d\n", week+1, day, start, hours[k-1])
 					start = i
 				}
 			}
+			//到24时截止
 			if k == len(hours)-1 {
 				fmt.Printf("第%d周：星期%d,%d-%d\n", week+1, day, start, hours[k])
 			}
@@ -126,6 +129,7 @@ func main() {
 		10: 20,
 		11: 21,
 	}
+	//格式化输入并添加忙碌时间
 	for _, time := range s {
 		course := ExgCourse(time)
 		for i := course.StartWeek; i <= course.EndWeek; i++ {
@@ -133,6 +137,7 @@ func main() {
 		}
 
 	}
+	//获取结果并格式化
 	for i := 0; i < TotalWeeks; i++ {
 		readData(i, tables[i].FindFreeTime())
 	}
