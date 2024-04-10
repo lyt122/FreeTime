@@ -13,6 +13,24 @@ const (
 	TotalWeeks = 22
 	StartDay   = "2024年02月26日" //学期开始时间
 	shortForm  = "2006年01月02日" //用于格式化
+	//m把节转成小时
+
+)
+
+var (
+	m = map[int]int{
+		1:  8,
+		2:  9,
+		3:  10,
+		4:  11,
+		5:  14,
+		6:  15,
+		7:  16,
+		8:  17,
+		9:  19,
+		10: 20,
+		11: 21,
+	}
 )
 
 // ExtractHourFromTime 用于解析08:20-10:00这种时间
@@ -167,20 +185,6 @@ func main() {
 	s = append(s, "10-11 星期6:1-8节")
 	s = append(s, "01-16 星期1:5-6节")
 
-	//m把节转成小时
-	m := map[int]int{
-		1:  8,
-		2:  9,
-		3:  10,
-		4:  11,
-		5:  14,
-		6:  15,
-		7:  16,
-		8:  17,
-		9:  19,
-		10: 20,
-		11: 21,
-	}
 	//格式化输入并添加忙碌时间
 	for _, busyTime := range s {
 		course := ExgCourse(busyTime)
@@ -192,7 +196,7 @@ func main() {
 	//添加考试时间
 	exams := CheckExamTime("")
 	//fmt.Println(exams.Week, exams.StartHour, exams.EndHour, exams.Weekday)
-	tables[exams.Week].AddBusyTime(exams.StartHour, exams.EndHour, exams.Weekday)
+	tables[exams.Week-1].AddBusyTime(exams.StartHour, exams.EndHour, exams.Weekday)
 	//获取结果并格式化
 	for i := 0; i < TotalWeeks; i++ {
 		readData(i, tables[i].FindFreeTime())
