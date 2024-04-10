@@ -1,6 +1,7 @@
 package main
 
 import (
+	"FreeTime/model"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -8,76 +9,45 @@ import (
 )
 
 const (
-	TotalWeeks  = 20 //一共有多少周
-	DayPerWeek  = 7
-	HoursPerDay = 24
+	TotalWeeks = 22 //一共有多少周
 )
 
-type Table struct {
-	table [][]int
+// GetFreeTimeInOneWeek 根据weekId获取单独一周的空闲时间的交集
+func GetFreeTimeInOneWeek(weekId int, table []*model.Table) []string {
+	return table[weekId].FindFreeTime()
 }
 
-func NewTable() *Table {
-	table := make([][]int, DayPerWeek+1)
-	for i := range table {
-		table[i] = make([]int, HoursPerDay+1)
-	}
-	return &Table{table}
-}
-
-func (ag *Table) AddBusyTime(startHour, endHour, day int) {
-	for i := startHour; i <= endHour; i++ {
-		ag.table[day][i] += 1
-	}
-}
-
-func (ag *Table) FindFreeTime() []string {
-	var freeTimes []string
-	for day := 1; day <= DayPerWeek; day++ {
-		for hour := 1; hour <= HoursPerDay; hour++ {
-			if ag.table[day][hour] == 0 {
-				freeTimes = append(freeTimes, fmt.Sprintf("%d-%d", day, hour))
-			}
-		}
-	}
-	return freeTimes
-}
-
-// 处理调课情况
-func (ag *Table) Adjust(oStartHour, oEndHour, oDay, startHour, endHour, day int) {
-	for i := oStartHour; i <= oEndHour; i++ {
-		ag.table[oDay][i] -= 1
-	}
-	for i := startHour; i <= endHour; i++ {
-		ag.table[day][i] += 1
-	}
-}
-
-// ExgClass 格式化输入课表
-func ExgClass(time string) (int, int, int, int, int) {
+// ExgCourse 格式化输入课表
+func ExgCourse(time string) *model.Course {
 	res := exg(time)
-	startWeek := res[0]
-	endWeek := res[1]
-	day := res[2]
-	startTime := res[3]
-	endTime := res[4]
-	return startWeek, endWeek, day, startTime, endTime
+	course := &model.Course{
+		StartWeek: res[0],
+		EndWeek:   res[1],
+		Day:       res[2],
+		StartTime: res[3],
+		EndTime:   res[4],
+	}
+	return course
 }
 
 // ExgAdjust 格式化输入调课信息
-func ExgAdjust(time string) (int, int, int, int, int, int, int, int, int, int) {
+func ExgAdjust(time string) (oldCourse, newCourse *model.Course) {
 	res := exg(time)
-	oStartWeek := res[0]
-	oEndWeek := res[1]
-	oDay := res[2]
-	oStartTime := res[3]
-	oEndTime := res[4]
-	startWeek := res[5]
-	endWeek := res[6]
-	day := res[7]
-	startTime := res[8]
-	endTime := res[9]
-	return oStartWeek, oEndWeek, oDay, oStartTime, oEndTime, startWeek, endWeek, day, startTime, endTime
+	oldCourse = &model.Course{
+		StartWeek: res[0],
+		EndWeek:   res[1],
+		Day:       res[2],
+		StartTime: res[3],
+		EndTime:   res[4],
+	}
+	newCourse = &model.Course{
+		StartWeek: res[0],
+		EndWeek:   res[1],
+		Day:       res[2],
+		StartTime: res[3],
+		EndTime:   res[4],
+	}
+	return oldCourse, newCourse
 }
 
 func exg(time string) []int {
@@ -129,10 +99,10 @@ func readData(week int, data []string) {
 }
 
 func main() {
-	tables := make([]*Table, 0)
+	tables := make([]*model.Table, 0)
 
 	for i := 0; i < TotalWeeks; i++ {
-		table := NewTable()
+		table := model.NewTable()
 		tables = append(tables, table)
 	}
 
@@ -157,9 +127,9 @@ func main() {
 		11: 21,
 	}
 	for _, time := range s {
-		startWeek, endWeek, day, startTime, endTime := ExgClass(time)
-		for i := startWeek; i <= endWeek; i++ {
-			tables[i-1].AddBusyTime(m[startTime], m[endTime], day)
+		course := ExgCourse(time)
+		for i := course.StartWeek; i <= course.EndWeek; i++ {
+			tables[i-1].AddBusyTime(m[course.StartTime], m[course.EndTime], course.Day)
 		}
 
 	}
