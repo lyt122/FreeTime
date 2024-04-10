@@ -13,11 +13,11 @@ const (
 	TotalWeeks = 22
 	StartDay   = "2024年02月26日" //学期开始时间
 	shortForm  = "2006年01月02日" //用于格式化
-	//m把节转成小时
 
 )
 
 var (
+	//m把节转成小时
 	m = map[int]int{
 		1:  8,
 		2:  9,
@@ -51,7 +51,7 @@ func extractHourFromTime(timeStr string) (string, string) {
 	return startHour, endHour
 }
 
-// CheckExamTime 格式化考试时间 ，返回的参数分别为：在第几周考试，星期几，考试开始小时，考试结束小时
+// CheckExamTime 格式化考试时间
 func CheckExamTime(str string) *model.Exam {
 
 	dateRe := regexp.MustCompile(`\d{4}年\d{2}月\d{2}日`)
