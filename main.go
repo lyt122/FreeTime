@@ -6,11 +6,63 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
-	TotalWeeks = 22 //一共有多少周
+	TotalWeeks = 22
+	StartDay   = "2024年02月26日" //学期开始时间
+	shortForm  = "2006年01月02日" //用于格式化
 )
+
+// ExtractHourFromTime 用于解析08:20-10:00这种时间
+func ExtractHourFromTime(timeStr string) (string, string) {
+	// 分割时间段字符串，获取开始时间和结束时间
+	parts := strings.Split(timeStr, "-")
+	if len(parts) != 2 {
+		return "", "" // 如果分割结果不是两部分，返回空字符串
+	}
+
+	startTime := parts[0]
+	endTime := parts[1]
+
+	// 提取开始时间和结束时间的小时部分（去掉前导零）
+	startHour := strings.TrimLeft(strings.Split(startTime, ":")[0], "0")
+	endHour := strings.TrimLeft(strings.Split(endTime, ":")[0], "0")
+
+	return startHour, endHour
+}
+
+// CheckExamTime 格式化考试时间 ，返回的参数分别为：在第几周考试，星期几，考试开始小时，考试结束小时
+func CheckExamTime(exam string) *model.Exam {
+	str := `2024年04月18日 08:20-10:00 旗山西3-303`
+
+	dateRe := regexp.MustCompile(`\d{4}年\d{2}月\d{2}日`)
+	timeRe := regexp.MustCompile(`\d{2}:\d{2}-\d{2}:\d{2}`)
+
+	date := dateRe.FindString(str)
+	examTime := timeRe.FindString(str)
+	startHour, endHour := ExtractHourFromTime(examTime)
+	startHours, _ := strconv.Atoi(startHour)
+	endHours, _ := strconv.Atoi(endHour)
+
+	// 解析日期
+	t1, _ := time.Parse(shortForm, StartDay)
+	t2, _ := time.Parse(shortForm, date)
+
+	// 计算日期差
+	week := int(t2.Sub(t1).Hours() / 24)
+	weekday := int(t2.Weekday())
+	week /= 7
+	exams := &model.Exam{
+		Week:      week + 1,
+		Weekday:   weekday,
+		StartHour: startHours,
+		EndHour:   endHours,
+	}
+
+	return exams
+}
 
 // GetFreeTimeInOneWeek 根据weekId获取单独一周的空闲时间的交集
 func GetFreeTimeInOneWeek(weekId int, table []*model.Table) []string {
@@ -130,13 +182,17 @@ func main() {
 		11: 21,
 	}
 	//格式化输入并添加忙碌时间
-	for _, time := range s {
-		course := ExgCourse(time)
+	for _, busyTime := range s {
+		course := ExgCourse(busyTime)
 		for i := course.StartWeek; i <= course.EndWeek; i++ {
 			tables[i-1].AddBusyTime(m[course.StartTime], m[course.EndTime], course.Day)
 		}
 
 	}
+	//添加考试时间
+	exams := CheckExamTime("")
+	//fmt.Println(exams.Week, exams.StartHour, exams.EndHour, exams.Weekday)
+	tables[exams.Week].AddBusyTime(exams.StartHour, exams.EndHour, exams.Weekday)
 	//获取结果并格式化
 	for i := 0; i < TotalWeeks; i++ {
 		readData(i, tables[i].FindFreeTime())
