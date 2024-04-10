@@ -27,7 +27,7 @@ func NewTable() *Table {
 
 func (ag *Table) AddBusyTime(startHour, endHour, day int) {
 	for i := startHour; i <= endHour; i++ {
-		ag.table[day][i] = 1
+		ag.table[day][i] += 1
 	}
 }
 
@@ -43,8 +43,44 @@ func (ag *Table) FindFreeTime() []string {
 	return freeTimes
 }
 
-// Exg 格式化输入
-func Exg(time string) (int, int, int, int, int) {
+// 处理调课情况
+func (ag *Table) Adjust(oStartHour, oEndHour, oDay, startHour, endHour, day int) {
+	for i := oStartHour; i <= oEndHour; i++ {
+		ag.table[oDay][i] -= 1
+	}
+	for i := startHour; i <= endHour; i++ {
+		ag.table[day][i] += 1
+	}
+}
+
+// ExgClass 格式化输入课表
+func ExgClass(time string) (int, int, int, int, int) {
+	res := exg(time)
+	startWeek := res[0]
+	endWeek := res[1]
+	day := res[2]
+	startTime := res[3]
+	endTime := res[4]
+	return startWeek, endWeek, day, startTime, endTime
+}
+
+// ExgAdjust 格式化输入调课信息
+func ExgAdjust(time string) (int, int, int, int, int, int, int, int, int, int) {
+	res := exg(time)
+	oStartWeek := res[0]
+	oEndWeek := res[1]
+	oDay := res[2]
+	oStartTime := res[3]
+	oEndTime := res[4]
+	startWeek := res[5]
+	endWeek := res[6]
+	day := res[7]
+	startTime := res[8]
+	endTime := res[9]
+	return oStartWeek, oEndWeek, oDay, oStartTime, oEndTime, startWeek, endWeek, day, startTime, endTime
+}
+
+func exg(time string) []int {
 	re := regexp.MustCompile(`\d+`)
 	matches := re.FindAllString(time, -1)
 	res := make([]int, 0)
@@ -58,12 +94,7 @@ func Exg(time string) (int, int, int, int, int) {
 		}
 		res = append(res, num)
 	}
-	startWeek := res[0]
-	endWeek := res[1]
-	day := res[2]
-	startTime := res[3]
-	endTime := res[4]
-	return startWeek, endWeek, day, startTime, endTime
+	return res
 }
 
 // 格式化输出
@@ -104,6 +135,8 @@ func main() {
 		table := NewTable()
 		tables = append(tables, table)
 	}
+
+	//这个是课表的时间
 	s := make([]string, 0)
 	s = append(s, "02-03 星期4:5-6节")
 	s = append(s, "10-11 星期6:1-8节")
@@ -124,7 +157,7 @@ func main() {
 		11: 21,
 	}
 	for _, time := range s {
-		startWeek, endWeek, day, startTime, endTime := Exg(time)
+		startWeek, endWeek, day, startTime, endTime := ExgClass(time)
 		for i := startWeek; i <= endWeek; i++ {
 			tables[i-1].AddBusyTime(m[startTime], m[endTime], day)
 		}
